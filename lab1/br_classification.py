@@ -70,7 +70,7 @@ import os
 import subprocess
 # Choose the project (options: 'pytorch', 'tensorflow', 'keras', 'incubator-mxnet', 'caffe')
 project = 'pytorch'
-path = f'datasets/{project}.csv'
+path = f'{project}.csv'
 
 pd_all = pd.read_csv(path)
 pd_all = pd_all.sample(frac=1, random_state=999)  # Shuffle
@@ -135,18 +135,20 @@ for repeated_time in range(REPEAT):
         indices, test_size=0.2, random_state=repeated_time
     )
 
-    # --- 4.2 TF-IDF vectorization ---
-    tfidf = TfidfVectorizer(
-        ngram_range=(1, 1),
-        max_features=1000  # Adjust as needed
-    )
-    X_all = tfidf.fit_transform(data[text_col])
-    # Convert to NumPy arrays instead of matrices
-    X_train = X_all[train_index].toarray()  # Changed to toarray()
-    X_test  = X_all[test_index].toarray()  # Changed to toarray()
+    train_text = data[text_col].iloc[train_index]
+    test_text = data[text_col].iloc[test_index]
+
     y_train = data['sentiment'].iloc[train_index]
     y_test  = data['sentiment'].iloc[test_index]
 
+    # --- 4.2 TF-IDF vectorization ---
+    tfidf = TfidfVectorizer(
+        ngram_range=(1, 2),
+        max_features=1000  # Adjust as needed
+    )
+    X_train = tfidf.fit_transform(train_text)
+    X_test = tfidf.transform(test_text)
+   
     # --- 4.3 Naive Bayes model & GridSearch ---
     clf = GaussianNB()
     grid = GridSearchCV(
